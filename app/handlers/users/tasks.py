@@ -15,11 +15,23 @@ class Task(StatesGroup):
     deadline = State()
 
 
+class Delete(StatesGroup):
+    delete = State()
+
+
+class Complete(StatesGroup):
+    complete = State()
+
+
 @dp.message_handler(commands=['add'])
 async def add_task(message: types.Message):
-    await message.reply("Please enter your task:")
-    await Task.text.set()
-    logger.info(f"User {message.from_user.id} started to add the task.")
+    try:
+        await message.reply("Please enter your task:")
+        await Task.text.set()
+        logger.info(f"User {message.from_user.id} started to add the task.")
+    except Exception as e:
+        print(f"User {message.from_user.id}, error while adding task\n{e}")
+        logger.error(f"User {message.from_user.id}, error while adding task\n{e}n")
 
 
 @dp.message_handler(state=Task.text)
@@ -52,39 +64,57 @@ async def save_deadline(message: types.Message, state: FSMContext):
 
 @dp.message_handler(commands=['list'])
 async def list_tasks(message: types.Message):
-    user_id = message.from_user.id
-    cur.execute('''SELECT * FROM tasks WHERE user_id=?''', (user_id,))
-    tasks = cur.fetchall()
-    if tasks:
-        task_list = "\n".join(
-            [f"{task[0]}. {task[2]} - Category: {task[3]}, Deadline: {task[4]}, Completed: {'Yes' if task[5] else 'No'}"
-             for task in tasks])
-        await message.reply(f"Your tasks:\n{task_list}")
-    else:
-        await message.reply("No tasks found.")
+    try:
+        user_id = message.from_user.id
+        cur.execute('''SELECT * FROM tasks WHERE user_id=?''', (user_id,))
+        tasks = cur.fetchall()
+        if tasks:
+            task_list = "\n".join(
+                [f"{task[0]}. {task[2]} - Category: {task[3]}, Deadline: {task[4]}, Completed: {'Yes' if task[5] else 'No'}"
+                 for task in tasks])
+            await message.reply(f"Your tasks:\n{task_list}")
+        else:
+            await message.reply("No tasks found.")
+    except Exception as e:
+        print(f"User {message.from_user.id}, error while listing all tasks\n{e}")
+        logger.error(f"User {message.from_user.id}, error while listing all tasks\n{e}n")
 
 
 @dp.message_handler(commands=['delete'])
 async def delete_task(message: types.Message):
-    await message.reply("Please enter the ID of the task you want to delete:")
-    await dp.register_next_step_handler(message, perform_delete)
+    try:
+        await message.reply("Please enter the name of the task you want to delete:")
+        await Delete.delete.set()
+        logger.info(f"User {message.from_user.id} started to delete the task.")
+    except Exception as e:
+        print(f"User {message.from_user.id}, error while deleting task\n{e}")
+        logger.error(f"User {message.from_user.id}, error while deleting task\n{e}n")
 
 
-async def perform_delete(message: types.Message):
-    task_id = message.text
-    cur.execute('''DELETE FROM tasks WHERE id=?''', (task_id,))
+@dp.message_handler(state=Delete.delete)
+async def perform_delete(message: types.Message, state: FSMContext):
+    task_name = message.text
+    cur.execute('''DELETE FROM tasks WHERE task=?''', (task_name,))
     conn.commit()
+    await state.finish()
     await message.reply("Task deleted successfully!")
 
 
 @dp.message_handler(commands=['complete'])
 async def complete_task(message: types.Message):
-    await message.reply("Please enter the ID of the task you want to mark as completed:")
-    await dp.register_next_step_handler(message, perform_complete)
+    try:
+        await message.reply("Please enter the name of the task you want to mark as completed:")
+        await Complete.complete.set()
+        logger.info(f"User {message.from_user.id} started to mark the task as completed.")
+    except Exception as e:
+        print(f"User {message.from_user.id}, error while marking task as completed\n{e}")
+        logger.error(f"User {message.from_user.id}, error while marking task as completed\n{e}n")
 
 
-async def perform_complete(message: types.Message):
-    task_id = message.text
-    cur.execute('''UPDATE tasks SET completed=1 WHERE id=?''', (task_id,))
+@dp.message_handler(state=Complete.complete)
+async def perform_complete(message: types.Message, state: FSMContext):
+    task_name = message.text
+    cur.execute('''UPDATE tasks SET completed=1 WHERE task=?''', (task_name,))
     conn.commit()
+    await state.finish()
     await message.reply("Task marked as completed!")
