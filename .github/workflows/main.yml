@@ -19,7 +19,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest pytest-cov flake8 bandit locust
+        pip install pytest pytest-cov flake8 bandit aiogram-unittest locust
 
     - name: Run Flake8
       run: |
