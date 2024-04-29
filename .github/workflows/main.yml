@@ -16,6 +16,10 @@ jobs:
       with:
         python-version: 3.8
 
+    - name: Create .env file
+      run: |
+        echo BOT_TOKEN=${{ secrets.BOT_TOKEN }} > .env
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
