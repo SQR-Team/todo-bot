@@ -3,7 +3,7 @@ from aiogram import types
 from loader import dp
 
 
-@dp.message_handler(commands=['help'])
+@dp.message_handler(commands=["help"])
 async def help_command(message: types.Message):
     help_text = """
     Available commands:\n

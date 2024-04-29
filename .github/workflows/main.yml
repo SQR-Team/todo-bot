@@ -23,10 +23,16 @@ jobs:
 
     - name: Run Flake8
       run: |
-        # Stops the workflow if Flake8 raises any warnings
         flake8 ./app --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Run Bandit
       run: |
-        # Fail the step if any critical vulnerabilities are found
         bandit -r ./app -lll -iii
+
+    - name: Run pytest
+      run: |
+        pytest ./app/tests
+
+    - name: Run pytest-cov
+      run: |
+        pytest --cov-fail-under=60 --cov=./app ./app/tests/
