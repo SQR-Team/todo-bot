@@ -32,8 +32,10 @@ jobs:
 
     - name: Run pytest
       run: |
+        export PYTHONPATH=$PWD   
         pytest ./app/tests
 
     - name: Run pytest-cov
       run: |
+        export PYTHONPATH=$PWD   
         pytest --cov-fail-under=60 --cov=./app ./app/tests/
