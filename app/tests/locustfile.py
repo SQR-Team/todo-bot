@@ -4,7 +4,7 @@ from locust import HttpUser, TaskSet, task, between
 class UserBehavior(TaskSet):
     @task
     def start(self):
-        response = self.client.get("/start")
+        response = self.client.get("/start")  # noqa: F841
 
 
 class WebsiteUser(HttpUser):
@@ -20,7 +20,6 @@ if __name__ == "__main__":
     import os
     import sys
     sys.path.append(os.getcwd())
-    from aiogram import types
     from loader import dp
 
     dp.message_handler(commands=["start"])(UserBehavior.start)
